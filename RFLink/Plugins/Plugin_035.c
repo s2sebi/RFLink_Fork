@@ -51,7 +51,7 @@ boolean Plugin_035(byte function, char *string)
 {
    if (RawSignal.Number != IMAGINTRONIX_PULSECOUNT)
       return false;
-   unsigned int temperature = 0;
+   int temperature = 0;
    unsigned int rc = 0;
 
    byte checksum = 0;
@@ -119,8 +119,9 @@ boolean Plugin_035(byte function, char *string)
       return true; // already seen the RF packet recently
    //==================================================================================
    rc = (data[1]) & 0x3;
-   temperature = ((data[3]) << 4);
-   temperature /= temperature;
+   /*temperature = ((data[3]) << 4);
+   temperature /= temperature;*/
+   temperature = (data[3] - 40) * 10;
    //==================================================================================
    // Output
    //==================================================================================
