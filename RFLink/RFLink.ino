@@ -134,12 +134,10 @@ void loop()
   sendMsg();
 #endif
 
-
 #ifdef RFLINK_SERIAL2NET_ENABLED
 RFLink::Serial2Net::serverLoop();
-
-
 #endif // RFLINK_SERIAL2NET_ENABLED
+
 #ifdef SERIAL_ENABLED
 #if PIN_RF_TX_DATA_0 != NOT_A_PIN
   if (CheckSerial())
@@ -160,9 +158,11 @@ void sendMsg()
 #ifdef MQTT_ENABLED
     publishMsg();
 #endif
+
 #ifdef RFLINK_SERIAL2NET_ENABLED
 RFLink::Serial2Net::broadcastMessage(pbuffer);
 #endif // RFLINK_SERIAL2NET_ENABLED
+
 #ifdef OLED_ENABLED
     print_OLED();
 #endif
