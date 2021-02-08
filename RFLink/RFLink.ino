@@ -121,10 +121,9 @@ void setup()
 #endif
   pbuffer[0] = 0;
   set_Radio_mode(Radio_RX);
-  
-#ifdef SERIAL2NET_ENABLED
+#ifdef RFLINK_SERIAL2NET_ENABLED
 RFLink::Serial2Net::startServer();
-#endif // SERIAL2NET_ENABLED
+#endif // RFLINK_SERIAL2NET_ENABLED
 
 }
 
@@ -135,9 +134,12 @@ void loop()
   sendMsg();
 #endif
 
-#ifdef SERIAL2NET_ENABLED
+
+#ifdef RFLINK_SERIAL2NET_ENABLED
 RFLink::Serial2Net::serverLoop();
-#endif // SERIAL2NET_ENABLED
+
+
+#endif // RFLINK_SERIAL2NET_ENABLED
 #ifdef SERIAL_ENABLED
 #if PIN_RF_TX_DATA_0 != NOT_A_PIN
   if (CheckSerial())
@@ -158,9 +160,9 @@ void sendMsg()
 #ifdef MQTT_ENABLED
     publishMsg();
 #endif
-#ifdef SERIAL2NET_ENABLED
+#ifdef RFLINK_SERIAL2NET_ENABLED
 RFLink::Serial2Net::broadcastMessage(pbuffer);
-#endif // SERIAL2NET_ENABLED
+#endif // RFLINK_SERIAL2NET_ENABLED
 #ifdef OLED_ENABLED
     print_OLED();
 #endif
