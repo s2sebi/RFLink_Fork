@@ -10,13 +10,162 @@
 #include "2_Signal.h"
 #include "5_Plugin.h"
 
+#ifndef RFLINK_ASYNC_RECEIVER_ENABLED
 RawSignalStruct RawSignal = {0, 0, 0, 0, 0UL};
+#endif // RFLINK_ASYNC_RECEIVER_ENABLED
 unsigned long SignalCRC = 0L;   // holds the bitstream value for some plugins to identify RF repeats
 unsigned long SignalCRC_1 = 0L; // holds the previous SignalCRC (for mixed burst protocols)
 byte SignalHash = 0L;           // holds the processed plugin number
 byte SignalHashPrevious = 0L;   // holds the last processed plugin number
 unsigned long RepeatingTimer = 0L;
 
+#ifdef RFLINK_ASYNC_RECEIVER_ENABLED
+namespace AsyncSignalScanner {
+    RawSignalStruct RawSignal = {0, 0, 0, 0, 0UL, false};
+    unsigned long int lastChangedState_us = 0;
+    unsigned long int nextPulseTimeoutTime_us = 0;
+    bool scanningEnabled = false;
+
+    void startScanning() {
+      RawSignal.readyForDecoder = false;
+      RawSignal.Number = 0;
+      RawSignal.Time = 0;
+      RawSignal.Multiply = RAWSIGNAL_SAMPLE_RATE;
+      lastChangedState_us = 0;
+      nextPulseTimeoutTime_us = 0;
+      scanningEnabled = true;
+      attachInterrupt(PIN_RF_RX_DATA, RX_pin_changed_state, CHANGE);
+    }
+
+    void stopScanning() {
+      scanningEnabled = false;
+      detachInterrupt(PIN_RF_RX_DATA);
+    }
+
+    void IRAM_ATTR RX_pin_changed_state() {
+      static unsigned long lastChangedState_us = 0;
+      unsigned long changeTime_us = micros();
+
+      if (RawSignal.readyForDecoder) // it means previous packet has not been decoded yet, let's forget about it
+        return; 
+
+      unsigned long pulseLength_us = changeTime_us - lastChangedState_us;
+      lastChangedState_us = changeTime_us;
+
+      if(pulseLength_us < MIN_PULSE_LENGTH_US){ // this is too short, noise?
+        nextPulseTimeoutTime_us = 0; // stop watching for a timeout
+        RawSignal.Number = 0;
+        RawSignal.Time = 0;
+      }
+
+      int pinState = digitalRead(PIN_RF_RX_DATA);
+
+      if (RawSignal.Time == 0) {            // this is potentially the beginning of a new signal
+        if( pinState != 1)                  // if we get 0 here it means that we are in the middle of a signal, let's forget about it
+          return;
+        
+        RawSignal.Time = millis();          // record when this signal started
+        RawSignal.Multiply = RAWSIGNAL_SAMPLE_RATE;
+        nextPulseTimeoutTime_us = changeTime_us + SIGNAL_END_TIMEOUT_US;
+
+        return;
+      }
+
+      if ( pulseLength_us > SIGNAL_END_TIMEOUT_US ) { // signal timedout but was not caught by main loop! We will do its job
+        onPulseTimerTimeout();
+        return;
+      }
+
+      RawSignal.Number++;
+
+      if (RawSignal.Number >= RAW_BUFFER_SIZE ) {      // this signal has too many pulses and will be dicarded
+        nextPulseTimeoutTime_us = 0; // stop watching for a timeout
+        RawSignal.Number = 0;
+        RawSignal.Time = 0;
+        //Serial.println("this signal has too many pulses and will be dicarded");
+        return;
+      }
+
+      if (RawSignal.Number == 0 && pulseLength_us < SIGNAL_MIN_PREAMBLE_US) {   // too short preamnble, let's drop it
+        nextPulseTimeoutTime_us = 0; // stop watching for a timeout
+        RawSignal.Number = 0;
+        RawSignal.Time = 0;
+        //Serial.print("too short preamnble, let's drop it:");Serial.println(pulseLength_us);
+        return;
+      }
+
+      //Serial.print("found pulse #");Serial.println(RawSignal.Number);
+      RawSignal.Pulses[RawSignal.Number] = pulseLength_us / RAWSIGNAL_SAMPLE_RATE;
+      nextPulseTimeoutTime_us = changeTime_us + SIGNAL_END_TIMEOUT_US;
+
+    }
+
+    void onPulseTimerTimeout() {
+      if (RawSignal.readyForDecoder){  // it means previous packet has not been decoded yet, let's forget about it
+        //Serial.println("previous signal not decoded yet, discarding this one");
+        nextPulseTimeoutTime_us = 0;
+        return;
+      }
+
+      /*if (digitalRead(PIN_RF_RX_DATA) == HIGH) {   // We have a corrupted packet here
+        Serial.println("corrupted signal ends with HIGH");
+        RawSignal.Number = 0;
+        RawSignal.Time = 0;
+        nextPulseTimeoutTime_us = 0;
+        return;
+      }*/
+
+      if ( RawSignal.Number == 0) {  // timeout on preamble!
+        //Serial.println("timeout on preamble");
+        nextPulseTimeoutTime_us = 0;
+        RawSignal.Number = 0;
+        RawSignal.Time = 0;
+        return;
+      }
+
+       if ( RawSignal.Number < MIN_RAW_PULSES) {  // not enough pulses, we ignore it
+        nextPulseTimeoutTime_us = 0;
+        RawSignal.Number = 0;
+        RawSignal.Time = 0;
+        return;
+      }
+      
+      // finally we have one!
+      stopScanning();
+      nextPulseTimeoutTime_us = 0;
+      RawSignal.Number++;
+      RawSignal.Pulses[RawSignal.Number] = SIGNAL_END_TIMEOUT_US / RAWSIGNAL_SAMPLE_RATE;
+      //Serial.print("found one packet, marking now for decoding. Pulses = ");Serial.println(RawSignal.Number);
+      RawSignal.readyForDecoder = true;
+    }
+};
+
+using namespace AsyncSignalScanner;
+
+boolean ScanEvent(void) {
+  if (!AsyncSignalScanner::RawSignal.readyForDecoder) {
+    if( AsyncSignalScanner::nextPulseTimeoutTime_us > 0
+        && AsyncSignalScanner::nextPulseTimeoutTime_us < micros() ) { // may be current pulse has now timedout so we have a signal?
+      
+      AsyncSignalScanner::onPulseTimerTimeout();   // refresh signal properties
+
+      if(!AsyncSignalScanner::RawSignal.readyForDecoder) // still dont have a valid signal?
+        return false;
+    }
+    else
+      return false;
+  }
+  
+  byte signalWasDecoded = PluginRXCall(0, 0); // Check all plugins to see which plugin can handle the received signal.
+  //Serial.println("check2");
+  if (signalWasDecoded)
+  { // Check all plugins to see which plugin can handle the received signal.
+      RepeatingTimer = millis() + SIGNAL_REPEAT_TIME_MS;
+  }
+  startScanning();
+  return (signalWasDecoded != 0);
+}
+#else
 /*********************************************************************************************/
 boolean ScanEvent(void)
 { // Deze routine maakt deel uit van de hoofdloop en wordt iedere 125uSec. doorlopen
@@ -36,6 +185,7 @@ boolean ScanEvent(void)
   } // while
   return false;
 }
+#endif // RFLINK_ASYNC_RECEIVER_ENABLED_CALL
 
 #if (defined(ESP32) || defined(ESP8266))
 // ***********************************************************************************
@@ -81,17 +231,20 @@ boolean FetchSignal()
     if (!CHECK_TIMEOUT)
       return false;
   }
+
+
+  RESET_TIMESTART; // next pulse starts now before we do anything else
   //Serial.print ("PulseLength: "); Serial.println (PulseLength);
   STORE_PULSE;
+
+  noInterrupts();
 
   // ************************
   // ***   Message Loop   ***
   // ************************
   while (RawCodeLength < RAW_BUFFER_SIZE)
   {
-
-    // ***   Time Pulse   ***
-    RESET_TIMESTART;
+   
     while (CHECK_RF)
     {
       GET_PULSELENGTH;
@@ -99,10 +252,14 @@ boolean FetchSignal()
         break;
     }
 
+    // next Pulse starts now (while we are busy doing calculation) 
+    RESET_TIMESTART;
+
     // ***   Too short Pulse Check   ***
     if (PulseLength_us < MIN_PULSE_LENGTH_US)
     {
       // NO RawCodeLength++;
+      interrupts();
       return false; // Or break; instead, if you think it may worth it.
     }
 
@@ -119,6 +276,7 @@ boolean FetchSignal()
     // ***   Store Pulse   ***
     STORE_PULSE;
   }
+  interrupts();
   //Serial.print ("RawCodeLength: ");
   //Serial.println (RawCodeLength);
 

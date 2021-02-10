@@ -9,6 +9,7 @@
 #include "RFLink.h"
 #include "1_Radio.h"
 #include "4_Display.h"
+#include "2_Signal.h"
 
 uint8_t PIN_RF_RX_PMOS = PIN_RF_RX_PMOS_0;
 uint8_t PIN_RF_RX_NMOS = PIN_RF_RX_NMOS_0;
@@ -199,10 +200,16 @@ void enableRX()
   if (PULLUP_RF_RX_DATA)
     pinMode(PIN_RF_RX_DATA, INPUT_PULLUP); // Initialise in/output ports
   delayMicroseconds(TRANSMITTER_STABLE_DELAY_US);
+  #ifdef RFLINK_ASYNC_RECEIVER_ENABLED
+  AsyncSignalScanner::startScanning();
+  #endif // RFLINK_ASYNC_RECEIVER_ENABLED
 }
 
 void disableRX()
 {
+  #ifdef RFLINK_ASYNC_RECEIVER_ENABLED
+  AsyncSignalScanner::stopScanning();
+  #endif // RFLINK_ASYNC_RECEIVER_ENABLED
   // RX pins
   pinMode(PIN_RF_RX_DATA, INPUT);
   pinMode(PIN_RF_RX_NA, INPUT);

@@ -53,6 +53,8 @@ Many features are not enabled by default or can be disabled for various reasons 
 - EFLINK_SERIAL2NET_ENABLED
 - EFLINK_SERIAL2NET_DEBUG
 - RFLINK_SERIAL2NET_PORT=1900 default port is 1900 but you can change it here
+### Async Receiver (disabled by default)
+Define compilation flag RFLINK_ASYNC_RECEIVER_ENABLED
 
 ## 8. Additional info
 ### Pinout
