@@ -189,6 +189,16 @@ boolean Plugin_001(byte function, const char *string)
    // ==========================================================================
    // Kill ALL Short RF packets
    // ==========================================================================
+   if (RawSignal.Number < 24)	
+   { // Less than 24 pulses?	
+      if ((RFDebug == true) || (QRFDebug == true))	
+      {	
+         RawSignal.Number = 0; // Kill packet	
+         return true;          // abort further processing	
+      }	
+      else	
+         return false; // abort this processing only	
+   }
    // ==========================================================================
    // DEBUG
    // ==========================================================================
