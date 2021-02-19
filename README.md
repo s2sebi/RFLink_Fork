@@ -49,6 +49,10 @@ Many features are not enabled by default or can be disabled for various reasons 
 ### MQTT Server (disabled by default)
 - Define compilation flag MQTT_ENABLED or define it in 6_WIFI_MQTT.h
 - If you have not enabled WifiManager, make sure you update Wifi settings in 6_Credentials.h
+### Serial2Net (disabled by default)
+- EFLINK_SERIAL2NET_ENABLED
+- EFLINK_SERIAL2NET_DEBUG
+- RFLINK_SERIAL2NET_PORT=1900 default port is 1900 but you can change it here
 ### Async Receiver (disabled by default)
 Define compilation flag RFLINK_ASYNC_RECEIVER_ENABLED
 
