@@ -135,6 +135,7 @@ RFLink::Serial2Net::startServer();
 
 void loop()
 {
+  #undef MQTT_ENABLED
   #ifdef MQTT_ENABLED
   RFLink::Mqtt::checkMQTTloop();
   RFLink::sendMsgFromBuffer();
