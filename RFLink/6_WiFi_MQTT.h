@@ -17,6 +17,7 @@
 #include <ESP8266WiFi.h>
 #endif
 
+#define MQTT_ENABLED
 #ifdef MQTT_ENABLED
 extern char MQTTbuffer[PRINT_BUFFER_SIZE]; // Buffer for MQTT message
 
