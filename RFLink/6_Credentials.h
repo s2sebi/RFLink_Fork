@@ -26,12 +26,12 @@ String WIFI_SUBNET = "255.255.255.0";
 // MQTT Server
 String MQTT_SERVER = "10.0.0.61";
 String MQTT_PORT = "1883";
-String MQTT_ID = "ESP8266-RFLink_001";
+String MQTT_ID = "ESP8266-RFLink_RF315";
 String MQTT_USER = "mqtt";
 String MQTT_PSWD = "mqtt";
 
 // MQTT Topic
-String MQTT_TOPIC_OUT = "RF_LINK/ESP00/msg";
+String MQTT_TOPIC_OUT = "RF_LINK/ESP_RF315/msg";
 String MQTT_TOPIC_IN = "RF_LINK/ESP00/cmd";
 String MQTT_TOPIC_LWT = "RF_LINK/ESP00/lwt";
 
