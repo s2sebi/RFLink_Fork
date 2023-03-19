@@ -11,11 +11,11 @@
 #include "RFLink.h"
 
 // local AP
-#define WIFI_SSID "xxx";
-#define WIFI_PSWD "xxx";
+#define WIFI_SSID "happy_and";
+#define WIFI_PSWD "alamakotaakotmaale";
 
 // DHCP or Static IP
-// #define USE_DHCP
+#define USE_DHCP
 #ifndef USE_DHCP
 #define WIFI_IP "192.168.1.xxx";
 #define WIFI_DNS "192.168.1.xxx";
@@ -24,16 +24,16 @@
 #endif
 
 // MQTT Server
-#define  MQTT_SERVER "192.168.1.xxx"
+#define  MQTT_SERVER "10.0.0.61"
 #define  MQTT_PORT "1883";
-#define  MQTT_ID "ESP8266-RFLink_xxx";
-#define  MQTT_USER "xxx";
-#define  MQTT_PSWD "xxx";
+#define  MQTT_ID "ESP8266-RFLink_RF315";
+#define  MQTT_USER "mqtt";
+#define  MQTT_PSWD "mqtt";
 
 // MQTT Topic
-#define MQTT_TOPIC_OUT "/ESP00/msg";
-#define MQTT_TOPIC_IN "/ESP00/cmd";
-#define MQTT_TOPIC_LWT "/ESP00/lwt";
+#define MQTT_TOPIC_OUT "RF_Link/ESP_RF315/msg";
+#define MQTT_TOPIC_IN "RF_Link/ESP_RF315/cmd";
+#define MQTT_TOPIC_LWT "RF_Link/ESP_RF315/lwt";
 
 // OTA
 #define AutoOTA_URL "http://domain.com/firmware.bin"
