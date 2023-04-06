@@ -32,8 +32,8 @@ String MQTT_PSWD = "mqtt";
 
 // MQTT Topic
 String MQTT_TOPIC_OUT = "RF_LINK/ESP_RF315/msg";
-String MQTT_TOPIC_IN = "RF_LINK/ESP00/cmd";
-String MQTT_TOPIC_LWT = "RF_LINK/ESP00/lwt";
+String MQTT_TOPIC_IN = "RF_LINK/ESP_RF315/cmd";
+String MQTT_TOPIC_LWT = "RF_LINK/ESP_RF315/lwt";
 
 #ifdef CHECK_CACERT
 static const char ca_cert[] PROGMEM = R"EOF(

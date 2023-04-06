@@ -73,6 +73,8 @@ void setup()
   delay(250);         // Time needed to switch back from Upload to Console
   Serial.begin(BAUD); // Initialise the serial port
 
+
+
 #if (defined(ESP32) || defined(ESP8266))
   Serial.println(); // ESP "Garbage" message
   Serial.print(F("Arduino IDE Version :\t"));
@@ -80,10 +82,12 @@ void setup()
 #ifdef ESP8266
   Serial.print(F("ESP CoreVersion :\t"));
   Serial.println(ESP.getCoreVersion());
+
 #endif // ESP8266
   Serial.print(F("Sketch File :\t\t"));
   Serial.println(__FILE__); // "RFLink.ino" version is in 20;00 Message
   Serial.println(F("Compiled on :\t\t" __DATE__ " at " __TIME__));
+  Serial.println(F("Branch :\t\t"  " Sebi_v8_rt315 " ));
 
 #ifdef MQTT_ENABLED
   setup_WIFI();
