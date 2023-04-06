@@ -242,7 +242,8 @@ void disableTX()
 {
   // TX Pins
   delayMicroseconds(TRANSMITTER_STABLE_DELAY_US);
-  digitalWrite(PIN_RF_TX_DATA, LOW);  // No more signal
+  digitalWrite(PIN_RF_TX_DATA, HIGH);  // No more signal
+  // digitalWrite(PIN_RF_TX_DATA, LOW);  // No more signal
   pinMode(PIN_RF_TX_DATA, INPUT);     //
   pinMode(PIN_RF_TX_NA, INPUT);       //
   pinMode(PIN_RF_TX_NMOS, OUTPUT);    // MOSFET, always output
