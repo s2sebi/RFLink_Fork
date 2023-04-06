@@ -82,6 +82,7 @@ void setup()
   Serial.print(F("Sketch File :\t\t"));
   Serial.println(__FILE__); // "RFLink.ino" version is in 20;00 Message
   Serial.println(F("Compiled on :\t\t" __DATE__ " at " __TIME__));
+  Serial.println(F("Branch :\t\t"  " Sebi1_v52_rt315 " ));  
 
 #ifdef MQTT_ENABLED
   setup_WIFI();
