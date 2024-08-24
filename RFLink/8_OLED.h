@@ -11,7 +11,7 @@
 #include <Arduino.h>
 #include "RFLink.h"
 
-#define OLED_ENABLED 
+// #define OLED_ENABLED 
 #ifdef OLED_ENABLED
 
 #define PIN_OLED_GND NOT_A_PIN // Ground power on this pin

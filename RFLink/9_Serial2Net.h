@@ -1,5 +1,7 @@
 #ifndef _9_Serial2Net_H_
 #define  _9_Serial2Net_H_
+#define RFLINK_SERIAL2NET_ENABLED
+
 
 #ifdef RFLINK_SERIAL2NET_ENABLED
 
